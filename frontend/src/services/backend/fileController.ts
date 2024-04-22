@@ -3,9 +3,9 @@
 import { request } from '@umijs/max';
 
 /** uploadFile POST /api/file/upload */
-export async function uploadFileUsingPOST(
+export async function uploadFileUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.uploadFileUsingPOSTParams,
+  params: API.uploadFileUsingPostParams,
   body: {},
   file?: File,
   options?: { [key: string]: any },
@@ -20,10 +20,15 @@ export async function uploadFileUsingPOST(
     const item = (body as any)[ele];
 
     if (item !== undefined && item !== null) {
-      formData.append(
-        ele,
-        typeof item === 'object' && !(item instanceof File) ? JSON.stringify(item) : item,
-      );
+      if (typeof item === 'object' && !(item instanceof File)) {
+        if (item instanceof Array) {
+          item.forEach((f) => formData.append(ele, f || ''));
+        } else {
+          formData.append(ele, JSON.stringify(item));
+        }
+      } else {
+        formData.append(ele, item);
+      }
     }
   });
 

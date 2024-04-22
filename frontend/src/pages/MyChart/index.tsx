@@ -1,6 +1,6 @@
-import { listMyChartByPageUsingPOST } from '@/services/backend/chartController';
+import { listMyChartByPageUsingPost } from '@/services/backend/chartController';
 
-import { useModel } from '@@/exports';
+import {useModel, useNavigate} from '@@/exports';
 import {Avatar, Card, List, message, Result} from 'antd';
 import ReactECharts from 'echarts-for-react';
 import React, { useEffect, useState } from 'react';
@@ -24,11 +24,12 @@ const MyChartPage: React.FC = () => {
   const [chartList, setChartList] = useState<API.Chart[]>();
   const [total, setTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate();
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const res = await listMyChartByPageUsingPOST(searchParams);
+      const res = await listMyChartByPageUsingPost(searchParams);
       if (res.data) {
         setChartList(res.data.records ?? []);
         setTotal(res.data.total ?? 0);
@@ -93,7 +94,9 @@ const MyChartPage: React.FC = () => {
         dataSource={chartList}
         renderItem={(item) => (
           <List.Item key={item.id}>
-            <Card style={{ width: '100%' }}>
+            <Card style={{ width: '100%' }}
+              onClick={() => navigate(`/chart/details/${item.id}`)}
+            >
               <List.Item.Meta
                 avatar={<Avatar src={currentUser && currentUser.userAvatar} />}
                 title={item.name}

@@ -3,7 +3,7 @@
 import { request } from '@umijs/max';
 
 /** addChart POST /api/chart/add */
-export async function addChartUsingPOST(
+export async function addChartUsingPost(
   body: API.ChartAddRequest,
   options?: { [key: string]: any },
 ) {
@@ -18,7 +18,7 @@ export async function addChartUsingPOST(
 }
 
 /** deleteChart POST /api/chart/delete */
-export async function deleteChartUsingPOST(
+export async function deleteChartUsingPost(
   body: API.DeleteRequest,
   options?: { [key: string]: any },
 ) {
@@ -33,7 +33,7 @@ export async function deleteChartUsingPOST(
 }
 
 /** editChart POST /api/chart/edit */
-export async function editChartUsingPOST(
+export async function editChartUsingPost(
   body: API.ChartEditRequest,
   options?: { [key: string]: any },
 ) {
@@ -48,9 +48,9 @@ export async function editChartUsingPOST(
 }
 
 /** genChartByAi POST /api/chart/gen */
-export async function genChartByAiUsingPOST(
+export async function genChartByAiUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.genChartByAiUsingPOSTParams,
+  params: API.genChartByAiUsingPostParams,
   body: {},
   file?: File,
   options?: { [key: string]: any },
@@ -65,10 +65,15 @@ export async function genChartByAiUsingPOST(
     const item = (body as any)[ele];
 
     if (item !== undefined && item !== null) {
-      formData.append(
-        ele,
-        typeof item === 'object' && !(item instanceof File) ? JSON.stringify(item) : item,
-      );
+      if (typeof item === 'object' && !(item instanceof File)) {
+        if (item instanceof Array) {
+          item.forEach((f) => formData.append(ele, f || ''));
+        } else {
+          formData.append(ele, JSON.stringify(item));
+        }
+      } else {
+        formData.append(ele, item);
+      }
     }
   });
 
@@ -84,9 +89,9 @@ export async function genChartByAiUsingPOST(
 }
 
 /** genChartByAiAsync POST /api/chart/gen/async */
-export async function genChartByAiAsyncUsingPOST(
+export async function genChartByAiAsyncUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.genChartByAiAsyncUsingPOSTParams,
+  params: API.genChartByAiAsyncUsingPostParams,
   body: {},
   file?: File,
   options?: { [key: string]: any },
@@ -101,10 +106,15 @@ export async function genChartByAiAsyncUsingPOST(
     const item = (body as any)[ele];
 
     if (item !== undefined && item !== null) {
-      formData.append(
-        ele,
-        typeof item === 'object' && !(item instanceof File) ? JSON.stringify(item) : item,
-      );
+      if (typeof item === 'object' && !(item instanceof File)) {
+        if (item instanceof Array) {
+          item.forEach((f) => formData.append(ele, f || ''));
+        } else {
+          formData.append(ele, JSON.stringify(item));
+        }
+      } else {
+        formData.append(ele, item);
+      }
     }
   });
 
@@ -120,9 +130,9 @@ export async function genChartByAiAsyncUsingPOST(
 }
 
 /** genChartByAiAsyncMq POST /api/chart/gen/async/mq */
-export async function genChartByAiAsyncMqUsingPOST(
+export async function genChartByAiAsyncMqUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.genChartByAiAsyncMqUsingPOSTParams,
+  params: API.genChartByAiAsyncMqUsingPostParams,
   body: {},
   file?: File,
   options?: { [key: string]: any },
@@ -137,10 +147,15 @@ export async function genChartByAiAsyncMqUsingPOST(
     const item = (body as any)[ele];
 
     if (item !== undefined && item !== null) {
-      formData.append(
-        ele,
-        typeof item === 'object' && !(item instanceof File) ? JSON.stringify(item) : item,
-      );
+      if (typeof item === 'object' && !(item instanceof File)) {
+        if (item instanceof Array) {
+          item.forEach((f) => formData.append(ele, f || ''));
+        } else {
+          formData.append(ele, JSON.stringify(item));
+        }
+      } else {
+        formData.append(ele, item);
+      }
     }
   });
 
@@ -156,9 +171,9 @@ export async function genChartByAiAsyncMqUsingPOST(
 }
 
 /** getChartById GET /api/chart/get */
-export async function getChartByIdUsingGET(
+export async function getChartByIdUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getChartByIdUsingGETParams,
+  params: API.getChartByIdUsingGetParams,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseChart_>('/api/chart/get', {
@@ -170,8 +185,23 @@ export async function getChartByIdUsingGET(
   });
 }
 
+/** getChartResult GET /api/chart/get/result */
+export async function getChartResultUsingGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getChartResultUsingGetParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseChart_>('/api/chart/get/result', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** listChartByPage POST /api/chart/list/page */
-export async function listChartByPageUsingPOST(
+export async function listChartByPageUsingPost(
   body: API.ChartQueryRequest,
   options?: { [key: string]: any },
 ) {
@@ -186,7 +216,7 @@ export async function listChartByPageUsingPOST(
 }
 
 /** listMyChartByPage POST /api/chart/my/list/page */
-export async function listMyChartByPageUsingPOST(
+export async function listMyChartByPageUsingPost(
   body: API.ChartQueryRequest,
   options?: { [key: string]: any },
 ) {
@@ -201,7 +231,7 @@ export async function listMyChartByPageUsingPOST(
 }
 
 /** updateChart POST /api/chart/update */
-export async function updateChartUsingPOST(
+export async function updateChartUsingPost(
   body: API.ChartUpdateRequest,
   options?: { [key: string]: any },
 ) {

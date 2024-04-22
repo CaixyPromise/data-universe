@@ -1,4 +1,4 @@
-import {genChartByAiUsingPOST} from '@/services/backend/chartController';
+import {genChartByAiUsingPost} from '@/services/backend/chartController';
 import {UploadOutlined} from '@ant-design/icons';
 import {Button, Card, Col, Divider, Form, Input, message, Row, Select, Space, Spin, Upload} from 'antd';
 import TextArea from 'antd/es/input/TextArea';
@@ -36,7 +36,7 @@ const AddChart: React.FC = () =>
         };
         try
         {
-            const res = await genChartByAiUsingPOST(params, {}, values.file.file.originFileObj);
+            const res = await genChartByAiUsingPost(params, {}, values.file.file.originFileObj);
             if (!res?.data)
             {
                 message.error('分析失败');
