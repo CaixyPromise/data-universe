@@ -4,7 +4,9 @@ import com.caixy.backend.common.ErrorCode;
 import com.caixy.backend.constant.CommonConstant;
 import com.caixy.backend.exception.BusinessException;
 import com.caixy.backend.manager.AiManager;
+import com.caixy.backend.model.dto.chat.InputPrompt;
 import com.caixy.backend.model.entity.Chart;
+import com.caixy.backend.model.enums.ChartStatusEnum;
 import com.caixy.backend.model.enums.MessageQueueConstant;
 import com.caixy.backend.service.ChartService;
 import com.rabbitmq.client.Channel;
@@ -51,7 +53,7 @@ public class AnalysisMessageConsumer
         // 先修改图表任务状态为 “执行中”。等执行成功后，修改为 “已完成”、保存执行结果；执行失败后，状态修改为 “失败”，记录任务失败信息。
         Chart updateChart = new Chart();
         updateChart.setId(chart.getId());
-        updateChart.setStatus("running");
+        updateChart.setStatus(ChartStatusEnum.RUNNING.getValue());
         boolean b = chartService.updateById(updateChart);
         if (!b)
         {
@@ -59,8 +61,10 @@ public class AnalysisMessageConsumer
             handleChartUpdateError(chart.getId(), "更新图表执行中状态失败");
             return;
         }
+        // 构建输入Prompt
+        InputPrompt inputPrompt = InputPrompt.build(chart);
         // 调用 AI
-        String result = aiManager.doChat(CommonConstant.BI_MODEL_ID, buildUserInput(chart));
+        String result = aiManager.doChatByAzure(inputPrompt);
         String[] splits = result.split("【【【【【");
         if (splits.length < 3)
         {
@@ -74,8 +78,7 @@ public class AnalysisMessageConsumer
         updateChartResult.setId(chart.getId());
         updateChartResult.setGenChart(genChart);
         updateChartResult.setGenResult(genResult);
-        // todo 建议定义状态为枚举值
-        updateChartResult.setStatus("succeed");
+        updateChartResult.setStatus(ChartStatusEnum.SUCCEED.getValue());
         boolean updateResult = chartService.updateById(updateChartResult);
         if (!updateResult)
         {
@@ -118,7 +121,7 @@ public class AnalysisMessageConsumer
     {
         Chart updateChartResult = new Chart();
         updateChartResult.setId(chartId);
-        updateChartResult.setStatus("failed");
+        updateChartResult.setStatus(ChartStatusEnum.FAIL.getValue());
         updateChartResult.setExecMessage("execMessage");
         boolean updateResult = chartService.updateById(updateChartResult);
         if (!updateResult)

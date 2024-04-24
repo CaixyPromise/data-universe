@@ -92,3 +92,15 @@ logging:
   level:
     org.springframework.data.redis: DEBUG
 
+yuapi:
+  client:
+    access-key: sar2se2e9lazaestme8ujdomekuh6t5q
+    secret-key: 01zp6ujzxq5dbl9rfl6fp3zbzshk126y
+
+
+azure:
+  openai:
+    apiKey: 2385d5b128cd4b0fad92ac22a2c20994
+    spareKey: d827751d753643ecac57c33b4e7c0f05
+    endPoint: https://ai-157762802ai441031240101.openai.azure.com/
+    modelId: gpt-4

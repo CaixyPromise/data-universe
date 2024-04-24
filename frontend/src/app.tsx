@@ -24,10 +24,16 @@ export async function getInitialState(): Promise<{
         try
         {
             const res = await getLoginUserUsingGet();
+            // 如果未登录
+            if (res.code === 40100)
+            {
+                history.push(loginPath);
+            }
             return res.data;
         }
         catch (error)
         {
+            console.log("用户未登录")
             history.push(loginPath);
         }
         return undefined;

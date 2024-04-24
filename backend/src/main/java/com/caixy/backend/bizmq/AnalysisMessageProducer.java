@@ -15,9 +15,11 @@ public class AnalysisMessageProducer
 
     /**
      * 发送
+     *
      * @param message
      */
-    public void sendMessage(String message) {
+    public void sendMessage(String message)
+    {
         rabbitTemplate.convertAndSend(MessageQueueConstant.ANALYSIS_EXCHANGE, MessageQueueConstant.ANALYSIS_ROUTE_KEY, message);
     }
 

@@ -30,6 +30,5 @@ public class OpenAiApi {
 //                    .body();
 //            return JSONUtil.toBean(result, CreateChatCompletionResponse.class);
 //        }
-
     }
 }

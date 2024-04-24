@@ -4,9 +4,6 @@ import cn.hutool.core.io.FileUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.caixy.backend.annotation.AuthCheck;
-import com.caixy.backend.exception.BusinessException;
-import com.caixy.backend.exception.ThrowUtils;
-import com.caixy.backend.model.dto.chart.*;
 import com.caixy.backend.bizmq.AnalysisMessageProducer;
 import com.caixy.backend.common.BaseResponse;
 import com.caixy.backend.common.DeleteRequest;
@@ -14,10 +11,14 @@ import com.caixy.backend.common.ErrorCode;
 import com.caixy.backend.common.ResultUtils;
 import com.caixy.backend.constant.CommonConstant;
 import com.caixy.backend.constant.UserConstant;
+import com.caixy.backend.exception.BusinessException;
+import com.caixy.backend.exception.ThrowUtils;
 import com.caixy.backend.manager.AiManager;
 import com.caixy.backend.manager.RedisLimiterManager;
+import com.caixy.backend.model.dto.chart.*;
 import com.caixy.backend.model.entity.Chart;
 import com.caixy.backend.model.entity.User;
+import com.caixy.backend.model.enums.ChartStatusEnum;
 import com.caixy.backend.model.vo.BiResponse;
 import com.caixy.backend.service.ChartService;
 import com.caixy.backend.service.UserService;
@@ -39,6 +40,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 图表操作接口
+ *
  * @author CAIXYPROMISE
  * @version 1.0
  * @since 2024/3/7 18:48
@@ -46,7 +48,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 @RestController
 @RequestMapping("/chart")
 @Slf4j
-public class ChartController {
+public class ChartController
+{
 
     @Resource
     private ChartService chartService;
@@ -77,8 +80,10 @@ public class ChartController {
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<Long> addChart(@RequestBody ChartAddRequest chartAddRequest, HttpServletRequest request) {
-        if (chartAddRequest == null) {
+    public BaseResponse<Long> addChart(@RequestBody ChartAddRequest chartAddRequest, HttpServletRequest request)
+    {
+        if (chartAddRequest == null)
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Chart chart = new Chart();
@@ -87,7 +92,7 @@ public class ChartController {
         chart.setUserId(loginUser.getId());
         boolean result = chartService.save(chart);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
-        long newChartId = chart.getId();
+        Long newChartId = chart.getId();
         return ResultUtils.success(newChartId);
     }
 
@@ -99,17 +104,20 @@ public class ChartController {
      * @return
      */
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteChart(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
-        if (deleteRequest == null || deleteRequest.getId() <= 0) {
+    public BaseResponse<Boolean> deleteChart(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request)
+    {
+        if (deleteRequest == null || deleteRequest.getId() <= 0)
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User user = userService.getLoginUser(request);
-        long id = deleteRequest.getId();
+        Long id = deleteRequest.getId();
         // 判断是否存在
         Chart oldChart = chartService.getById(id);
         ThrowUtils.throwIf(oldChart == null, ErrorCode.NOT_FOUND_ERROR);
         // 仅本人或管理员可删除
-        if (!oldChart.getUserId().equals(user.getId()) && !userService.isAdmin(request)) {
+        if (!oldChart.getUserId().equals(user.getId()) && !userService.isAdmin(request))
+        {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         boolean b = chartService.removeById(id);
@@ -124,13 +132,15 @@ public class ChartController {
      */
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updateChart(@RequestBody ChartUpdateRequest chartUpdateRequest) {
-        if (chartUpdateRequest == null || chartUpdateRequest.getId() <= 0) {
+    public BaseResponse<Boolean> updateChart(@RequestBody ChartUpdateRequest chartUpdateRequest)
+    {
+        if (chartUpdateRequest == null || chartUpdateRequest.getId() <= 0)
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Chart chart = new Chart();
         BeanUtils.copyProperties(chartUpdateRequest, chart);
-        long id = chartUpdateRequest.getId();
+        Long id = chartUpdateRequest.getId();
         // 判断是否存在
         Chart oldChart = chartService.getById(id);
         ThrowUtils.throwIf(oldChart == null, ErrorCode.NOT_FOUND_ERROR);
@@ -145,12 +155,15 @@ public class ChartController {
      * @return
      */
     @GetMapping("/get")
-    public BaseResponse<Chart> getChartById(long id, HttpServletRequest request) {
-        if (id <= 0) {
+    public BaseResponse<Chart> getChartById(Long id, HttpServletRequest request)
+    {
+        if (id <= 0)
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Chart chart = chartService.getById(id);
-        if (chart == null) {
+        if (chart == null)
+        {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
         return ResultUtils.success(chart);
@@ -165,7 +178,8 @@ public class ChartController {
      */
     @PostMapping("/list/page")
     public BaseResponse<Page<Chart>> listChartByPage(@RequestBody ChartQueryRequest chartQueryRequest,
-            HttpServletRequest request) {
+                                                     HttpServletRequest request)
+    {
         long current = chartQueryRequest.getCurrent();
         long size = chartQueryRequest.getPageSize();
         // 限制爬虫
@@ -184,8 +198,10 @@ public class ChartController {
      */
     @PostMapping("/my/list/page")
     public BaseResponse<Page<Chart>> listMyChartByPage(@RequestBody ChartQueryRequest chartQueryRequest,
-            HttpServletRequest request) {
-        if (chartQueryRequest == null) {
+                                                       HttpServletRequest request)
+    {
+        if (chartQueryRequest == null)
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
@@ -209,19 +225,22 @@ public class ChartController {
      * @return
      */
     @PostMapping("/edit")
-    public BaseResponse<Boolean> editChart(@RequestBody ChartEditRequest chartEditRequest, HttpServletRequest request) {
-        if (chartEditRequest == null || chartEditRequest.getId() <= 0) {
+    public BaseResponse<Boolean> editChart(@RequestBody ChartEditRequest chartEditRequest, HttpServletRequest request)
+    {
+        if (chartEditRequest == null || chartEditRequest.getId() <= 0)
+        {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Chart chart = new Chart();
         BeanUtils.copyProperties(chartEditRequest, chart);
         User loginUser = userService.getLoginUser(request);
-        long id = chartEditRequest.getId();
+        Long id = chartEditRequest.getId();
         // 判断是否存在
         Chart oldChart = chartService.getById(id);
         ThrowUtils.throwIf(oldChart == null, ErrorCode.NOT_FOUND_ERROR);
         // 仅本人或管理员可编辑
-        if (!oldChart.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
+        if (!oldChart.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser))
+        {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         boolean result = chartService.updateById(chart);
@@ -238,7 +257,8 @@ public class ChartController {
      */
     @PostMapping("/gen")
     public BaseResponse<BiResponse> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
-                                                 GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
+                                                 GenChartByAiRequest genChartByAiRequest, HttpServletRequest request)
+    {
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
         String chartType = genChartByAiRequest.getChartType();
@@ -285,7 +305,8 @@ public class ChartController {
 
         // 拼接分析目标
         String userGoal = goal;
-        if (StringUtils.isNotBlank(chartType)) {
+        if (StringUtils.isNotBlank(chartType))
+        {
             userGoal += "，请使用" + chartType;
         }
         userInput.append(userGoal).append("\n");
@@ -296,7 +317,8 @@ public class ChartController {
 
         String result = aiManager.doChat(biModelId, userInput.toString());
         String[] splits = result.split("【【【【【");
-        if (splits.length < 3) {
+        if (splits.length < 3)
+        {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI 生成错误");
         }
         String genChart = splits[1].trim();
@@ -329,7 +351,8 @@ public class ChartController {
      */
     @PostMapping("/gen/async")
     public BaseResponse<BiResponse> genChartByAiAsync(@RequestPart("file") MultipartFile multipartFile,
-                                             GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
+                                                      GenChartByAiRequest genChartByAiRequest, HttpServletRequest request)
+    {
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
         String chartType = genChartByAiRequest.getChartType();
@@ -376,7 +399,8 @@ public class ChartController {
 
         // 拼接分析目标
         String userGoal = goal;
-        if (StringUtils.isNotBlank(chartType)) {
+        if (StringUtils.isNotBlank(chartType))
+        {
             userGoal += "，请使用" + chartType;
         }
         userInput.append(userGoal).append("\n");
@@ -391,7 +415,7 @@ public class ChartController {
         chart.setGoal(goal);
         chart.setChartData(csvData);
         chart.setChartType(chartType);
-        chart.setStatus("wait");
+        chart.setStatus(ChartStatusEnum.WAIT.getValue());
         chart.setUserId(loginUser.getId());
         boolean saveResult = chartService.save(chart);
         ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
@@ -401,16 +425,18 @@ public class ChartController {
             // 先修改图表任务状态为 “执行中”。等执行成功后，修改为 “已完成”、保存执行结果；执行失败后，状态修改为 “失败”，记录任务失败信息。
             Chart updateChart = new Chart();
             updateChart.setId(chart.getId());
-            updateChart.setStatus("running");
+            updateChart.setStatus(ChartStatusEnum.RUNNING.getValue());
             boolean b = chartService.updateById(updateChart);
-            if (!b) {
+            if (!b)
+            {
                 handleChartUpdateError(chart.getId(), "更新图表执行中状态失败");
                 return;
             }
             // 调用 AI
             String result = aiManager.doChat(biModelId, userInput.toString());
             String[] splits = result.split("【【【【【");
-            if (splits.length < 3) {
+            if (splits.length < 3)
+            {
                 handleChartUpdateError(chart.getId(), "AI 生成错误");
                 return;
             }
@@ -421,9 +447,10 @@ public class ChartController {
             updateChartResult.setGenChart(genChart);
             updateChartResult.setGenResult(genResult);
             // todo 建议定义状态为枚举值
-            updateChartResult.setStatus("succeed");
+            updateChartResult.setStatus(ChartStatusEnum.SUCCEED.getValue());
             boolean updateResult = chartService.updateById(updateChartResult);
-            if (!updateResult) {
+            if (!updateResult)
+            {
                 handleChartUpdateError(chart.getId(), "更新图表成功状态失败");
             }
         }, threadPoolExecutor);
@@ -443,7 +470,8 @@ public class ChartController {
      */
     @PostMapping("/gen/async/mq")
     public BaseResponse<BiResponse> genChartByAiAsyncMq(@RequestPart("file") MultipartFile multipartFile,
-                                                      GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
+                                                        GenChartByAiRequest genChartByAiRequest, HttpServletRequest request)
+    {
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
         String chartType = genChartByAiRequest.getChartType();
@@ -490,7 +518,8 @@ public class ChartController {
 
         // 拼接分析目标
         String userGoal = goal;
-        if (StringUtils.isNotBlank(chartType)) {
+        if (StringUtils.isNotBlank(chartType))
+        {
             userGoal += "，请使用" + chartType;
         }
         userInput.append(userGoal).append("\n");
@@ -505,25 +534,64 @@ public class ChartController {
         chart.setGoal(goal);
         chart.setChartData(csvData);
         chart.setChartType(chartType);
-        chart.setStatus("wait");
+        chart.setStatus(ChartStatusEnum.WAIT.getValue());
         chart.setUserId(loginUser.getId());
         boolean saveResult = chartService.save(chart);
         ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
-        long newChartId = chart.getId();
+        Long newChartId = chart.getId();
         analysisMessageProducer.sendMessage(String.valueOf(newChartId));
         BiResponse biResponse = new BiResponse();
         biResponse.setChartId(newChartId);
         return ResultUtils.success(biResponse);
     }
 
+    /**
+     * 获取单个分析结果
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/4/21 下午7:05
+     */
+    @GetMapping("/get/result")
+    public BaseResponse<Chart> getChartResult(@RequestParam("chartId") Long chartId, HttpServletRequest request)
+    {
+        if (chartId == null || chartId < 0)
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "非法的图表信息");
+        }
+        User loginUser = userService.getLoginUser(request);
+        // 获取图表
+        Chart chartById = chartService.getChartByIdAndUserId(chartId, loginUser.getId());
+        //校验图表是否存在
+        if (chartById == null)
+        {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表不存在");
+        }
+        // 获取图表生成状态
+        ChartStatusEnum chartStatus = ChartStatusEnum.getEnumByValue(chartById.getStatus());
+        if (chartStatus == null)
+        {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "生成图表状态异常");
+        }
+        // 如果还没有生成完成，就先不需要获取
+        if (!chartStatus.equals(ChartStatusEnum.SUCCEED))
+        {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图表正在生成或失败");
+        }
+        // 返回生成结果
+        return ResultUtils.success(chartById);
+    }
 
-    private void handleChartUpdateError(long chartId, String execMessage) {
+
+    private void handleChartUpdateError(Long chartId, String execMessage)
+    {
         Chart updateChartResult = new Chart();
         updateChartResult.setId(chartId);
-        updateChartResult.setStatus("failed");
+        updateChartResult.setStatus(ChartStatusEnum.FAIL.getValue());
         updateChartResult.setExecMessage("execMessage");
         boolean updateResult = chartService.updateById(updateChartResult);
-        if (!updateResult) {
+        if (!updateResult)
+        {
             log.error("更新图表失败状态失败" + chartId + "," + execMessage);
         }
     }
@@ -535,9 +603,11 @@ public class ChartController {
      * @param chartQueryRequest
      * @return
      */
-    private QueryWrapper<Chart> getQueryWrapper(ChartQueryRequest chartQueryRequest) {
+    private QueryWrapper<Chart> getQueryWrapper(ChartQueryRequest chartQueryRequest)
+    {
         QueryWrapper<Chart> queryWrapper = new QueryWrapper<>();
-        if (chartQueryRequest == null) {
+        if (chartQueryRequest == null)
+        {
             return queryWrapper;
         }
         Long id = chartQueryRequest.getId();
@@ -553,7 +623,7 @@ public class ChartController {
         queryWrapper.eq(StringUtils.isNotBlank(goal), "goal", goal);
         queryWrapper.eq(StringUtils.isNotBlank(chartType), "chartType", chartType);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
-        queryWrapper.eq("isDelete", false);
+//        queryWrapper.eq("isDelete", false);
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         return queryWrapper;
