@@ -1,7 +1,6 @@
 package com.caixy.backend.bizmq;
 
 import com.caixy.backend.common.ErrorCode;
-import com.caixy.backend.constant.CommonConstant;
 import com.caixy.backend.exception.BusinessException;
 import com.caixy.backend.manager.AiManager;
 import com.caixy.backend.model.dto.chat.InputPrompt;
@@ -9,10 +8,13 @@ import com.caixy.backend.model.entity.Chart;
 import com.caixy.backend.model.enums.ChartStatusEnum;
 import com.caixy.backend.model.enums.MessageQueueConstant;
 import com.caixy.backend.service.ChartService;
+import com.caixy.backend.utils.JsonUtils;
+import com.caixy.backend.utils.RegexUtils;
 import com.rabbitmq.client.Channel;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.messaging.handler.annotation.Header;
@@ -43,7 +45,7 @@ public class AnalysisMessageConsumer
             channel.basicNack(deliveryTag, false, false);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
         }
-        long chartId = Long.parseLong(message);
+        Long chartId = Long.valueOf(message);
         Chart chart = chartService.getById(chartId);
         if (chart == null)
         {
@@ -58,35 +60,47 @@ public class AnalysisMessageConsumer
         if (!b)
         {
             channel.basicNack(deliveryTag, false, false);
-            handleChartUpdateError(chart.getId(), "更新图表执行中状态失败");
+            handleChartUpdateError(chart.getId(), "更新图表执行中状态失败", "");
             return;
         }
         // 构建输入Prompt
         InputPrompt inputPrompt = InputPrompt.build(chart);
         // 调用 AI
+        log.info("调用Azure Ai");
         String result = aiManager.doChatByAzure(inputPrompt);
         String[] splits = result.split("【【【【【");
         if (splits.length < 3)
         {
             channel.basicNack(deliveryTag, false, false);
-            handleChartUpdateError(chart.getId(), "AI 生成错误");
+            handleChartUpdateError(chart.getId(), "AI 生成错误", result);
             return;
         }
-        String genChart = splits[1].trim();
+        Chart updateChartResult = getChartResult(splits, chart);
+        updateChartResult.setResponseContent(result);
+        boolean updateResult = chartService.updateById(updateChartResult);
+        if (!updateResult)
+        {
+            channel.basicNack(deliveryTag, false, false);
+            handleChartUpdateError(chart.getId(), "更新图表成功状态失败", result);
+        }
+        // 消息确认
+        channel.basicAck(deliveryTag, false);
+    }
+
+    private static @NotNull Chart getChartResult(String[] splits, Chart chart)
+    {
+        // 提取json字符串（单纯取出{}的内容）
+        String extraJson = RegexUtils.extraJson(splits[1].trim());
+        // 修复或转化成标准json字符串并返回
+        String genChart = JsonUtils.fixedJson(extraJson);
         String genResult = splits[2].trim();
         Chart updateChartResult = new Chart();
         updateChartResult.setId(chart.getId());
         updateChartResult.setGenChart(genChart);
         updateChartResult.setGenResult(genResult);
+
         updateChartResult.setStatus(ChartStatusEnum.SUCCEED.getValue());
-        boolean updateResult = chartService.updateById(updateChartResult);
-        if (!updateResult)
-        {
-            channel.basicNack(deliveryTag, false, false);
-            handleChartUpdateError(chart.getId(), "更新图表成功状态失败");
-        }
-        // 消息确认
-        channel.basicAck(deliveryTag, false);
+        return updateChartResult;
     }
 
     /**
@@ -117,12 +131,13 @@ public class AnalysisMessageConsumer
         return userInput.toString();
     }
 
-    private void handleChartUpdateError(long chartId, String execMessage)
+    private void handleChartUpdateError(long chartId, String execMessage, String responseContent)
     {
         Chart updateChartResult = new Chart();
         updateChartResult.setId(chartId);
         updateChartResult.setStatus(ChartStatusEnum.FAIL.getValue());
-        updateChartResult.setExecMessage("execMessage");
+        updateChartResult.setExecMessage(execMessage);
+        updateChartResult.setResponseContent(responseContent);
         boolean updateResult = chartService.updateById(updateChartResult);
         if (!updateResult)
         {

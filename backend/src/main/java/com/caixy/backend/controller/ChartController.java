@@ -5,10 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.caixy.backend.annotation.AuthCheck;
 import com.caixy.backend.bizmq.AnalysisMessageProducer;
-import com.caixy.backend.common.BaseResponse;
-import com.caixy.backend.common.DeleteRequest;
-import com.caixy.backend.common.ErrorCode;
-import com.caixy.backend.common.ResultUtils;
+import com.caixy.backend.common.*;
 import com.caixy.backend.constant.CommonConstant;
 import com.caixy.backend.constant.UserConstant;
 import com.caixy.backend.exception.BusinessException;
@@ -16,6 +13,7 @@ import com.caixy.backend.exception.ThrowUtils;
 import com.caixy.backend.manager.AiManager;
 import com.caixy.backend.manager.RedisLimiterManager;
 import com.caixy.backend.model.dto.chart.*;
+import com.caixy.backend.model.dto.chat.InputPrompt;
 import com.caixy.backend.model.entity.Chart;
 import com.caixy.backend.model.entity.User;
 import com.caixy.backend.model.enums.ChartStatusEnum;
@@ -432,8 +430,9 @@ public class ChartController
                 handleChartUpdateError(chart.getId(), "更新图表执行中状态失败");
                 return;
             }
+            InputPrompt inputPrompt = InputPrompt.build(chart);
             // 调用 AI
-            String result = aiManager.doChat(biModelId, userInput.toString());
+            String result = aiManager.doChatByAzure(inputPrompt);
             String[] splits = result.split("【【【【【");
             if (splits.length < 3)
             {
@@ -458,6 +457,51 @@ public class ChartController
         BiResponse biResponse = new BiResponse();
         biResponse.setChartId(chart.getId());
         return ResultUtils.success(biResponse);
+    }
+
+
+    /**
+     * 重新发起分析任务
+     * @param idRequest 重新开始的任务id
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/4/25 下午8:10
+     */
+    @PostMapping("/task/restart")
+    public BaseResponse<Boolean> restartTask(@RequestBody IdRequest idRequest, HttpServletRequest request)
+    {
+        if (idRequest == null || idRequest.getId() == null || idRequest.getId() < 0)
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数异常");
+        }
+        Long taskId = idRequest.getId();
+        User loginUser = userService.getLoginUser(request);
+
+        Chart chartById = chartService.getById(taskId);
+        if (chartById == null)
+        {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "任务不存在");
+        }
+        // 校验是否是当前用户
+        if (!loginUser.getId().equals(chartById.getUserId()))
+        {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限");
+        }
+        // 校验任务状态
+        ChartStatusEnum chartStatus = ChartStatusEnum.getEnumByValue(chartById.getStatus());
+        if (chartStatus == null
+                || !chartStatus.equals(ChartStatusEnum.FAIL))
+        {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "任务状态无需重新分析");
+        }
+        // 重新分析
+        chartById.setStatus(ChartStatusEnum.WAIT.getValue());
+        chartById.setExecMessage("重新生成中...");
+        chartService.updateById(chartById);
+        // 发送消息到队列
+        analysisMessageProducer.sendMessage(String.valueOf(chartById.getId()));
+        return ResultUtils.success(true);
     }
 
     /**
@@ -588,7 +632,7 @@ public class ChartController
         Chart updateChartResult = new Chart();
         updateChartResult.setId(chartId);
         updateChartResult.setStatus(ChartStatusEnum.FAIL.getValue());
-        updateChartResult.setExecMessage("execMessage");
+        updateChartResult.setExecMessage(execMessage);
         boolean updateResult = chartService.updateById(updateChartResult);
         if (!updateResult)
         {

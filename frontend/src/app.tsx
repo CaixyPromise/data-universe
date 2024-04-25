@@ -7,6 +7,7 @@ import {history, Link} from '@umijs/max';
 import {AvatarDropdown, AvatarName} from './components/RightContent/AvatarDropdown';
 import {errorConfig} from './requestConfig';
 import defaultSettings from '../config/defaultSettings';
+import Logo from "@/components/Logo/Logo";
 
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
@@ -131,6 +132,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
                 </>
             );
         },
+        logo: <Logo />,
         ...initialState?.settings,
     };
 };

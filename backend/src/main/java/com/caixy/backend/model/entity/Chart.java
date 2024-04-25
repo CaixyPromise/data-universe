@@ -50,6 +50,11 @@ public class Chart implements Serializable {
     private String genResult;
 
     /**
+     * Ai返回内容
+     */
+    private String responseContent;
+
+    /**
      * 任务状态
      */
     private String status;

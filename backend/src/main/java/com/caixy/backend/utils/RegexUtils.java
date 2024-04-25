@@ -2,6 +2,9 @@ package com.caixy.backend.utils;
 
 import com.caixy.backend.constant.RegexPatternConstants;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * 正则操作类
  *
@@ -47,8 +50,36 @@ public class RegexUtils
         return match(RegexPatternConstants.PASSWORD_REGEX, input);
     }
 
+    /**
+     * 清洗图像结果返回结果
+     *
+     * @author CAIXYPROMISE
+     * @version 1.0
+     * @since 2024/4/25 下午1:57
+     */
+    public static String matchChartResult(String input)
+    {
+        return Pattern.compile(RegexPatternConstants.CHART_RESULT_REGEX).matcher(input).replaceAll("");
+    }
+
+    public static String extraJson(String jsonString)
+    {
+        Matcher matcher = RegexPatternConstants.EXTRA_JSON_PATTERN.matcher(jsonString);
+        if (matcher.find())
+        {
+            return matcher.group(0);
+        }
+        else
+        {
+            return "{}";
+        }
+    }
+
+
     private static boolean match(String regex, String input)
     {
         return input.matches(regex);
     }
+
+
 }

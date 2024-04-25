@@ -1,10 +1,10 @@
 ﻿export default [
   { path: '/user', layout: false, routes: [{ path: '/user/login', component: './User/Login' }] },
   { path: '/', redirect: '/add_chart' },
-  { path: '/add_chart', name: '智能分析', icon: 'barChart', component: './AddChart' },
-  { path: '/add_chart_async', name: '智能分析（异步）', icon: 'barChart', component: './AddChartAsync' },
+  // { path: '/add_chart', name: '智能分析', icon: 'barChart', component: './AddChart' },
+  { path: '/add_chart_async', name: '智能分析', icon: 'barChart', component: './AddChartAsync' },
   { path: '/my_chart', name: '我的图表', icon: 'pieChart', component: './MyChart' },
-  { path: '/chart/details/:id', name: '分析详情', icon: 'pieChart', component: './ChartDetails', hideInMenu: false},
+  { path: '/chart/details/:id', name: '分析详情', icon: 'pieChart', component: './ChartDetails', hideInMenu: true},
 
   {
     path: '/admin',

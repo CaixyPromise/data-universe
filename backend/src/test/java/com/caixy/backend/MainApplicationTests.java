@@ -8,13 +8,18 @@ import com.caixy.backend.common.ErrorCode;
 import com.caixy.backend.config.AzureOpenAiConfig;
 import com.caixy.backend.exception.BusinessException;
 import com.caixy.backend.model.dto.chat.InputPrompt;
+import com.caixy.backend.utils.JsonUtils;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 主类测试
@@ -73,4 +78,99 @@ class MainApplicationTests
                 usage.getPromptTokens(), usage.getCompletionTokens(), usage.getTotalTokens());
     }
 
+    @Test
+    public void testJson()
+    {
+        String jsonString = "```json const option = {\n" +
+                "    title: {\n" +
+                "        text: \"网站用户增长情况\"\n" +
+                "    },\n" +
+                "    tooltip: {\n" +
+                "        trigger: \"axis\"\n" +
+                "    },\n" +
+                "    legend: {\n" +
+                "        data: [\"用户数\"]\n" +
+                "    },\n" +
+                "    grid: {\n" +
+                "        left: \"3%\",\n" +
+                "        right: \"4%\",\n" +
+                "        bottom: \"3%\",\n" +
+                "        containLabel: true\n" +
+                "    },\n" +
+                "    toolbox: {\n" +
+                "        feature: {\n" +
+                "            saveAsImage: {}\n" +
+                "        }\n" +
+                "    },\n" +
+                "    xAxis: {\n" +
+                "        type: \"category\",\n" +
+                "        boundaryGap: false,\n" +
+                "        data: [\"1号\", \"2号\", \"3号\", \"4号\", \"5号\", \"6号\", \"7号\"]\n" +
+                "    },\n" +
+                "    yAxis: {\n" +
+                "        type: \"value\"\n" +
+                "    },\n" +
+                "    series: [\n" +
+                "        {\n" +
+                "            name: \"用户数\",\n" +
+                "            type: \"line\",\n" +
+                "            stack: \"总量\",\n" +
+                "            data: [10, 20, 30, 90, 0, 10, 20]\n" +
+                "        }\n" +
+                "    ]\n" +
+                "}\n";
+        System.out.println(JsonUtils.fixedJson(jsonString));
+    }
+    @Test
+    public void testExtraJson()
+    {
+        String jsInput = "{\n" +
+                "  tooltip: {\n" +
+                "    trigger: 'item'\n" +
+                "  },\n" +
+                "  legend: {\n" +
+                "    orient: 'vertical',\n" +
+                "    left: 'left'\n" +
+                "  },\n" +
+                "  series: [\n" +
+                "    {\n" +
+                "      name: '访问来源',\n" +
+                "      type: 'pie',\n" +
+                "      radius: '50%',\n" +
+                "      data: [\n" +
+                "        {value: 321340, name: '页面流量量'},\n" +
+                "        {value: 108462, name: '单次流量'},\n" +
+                "        {value: 5639, name: '注册人数'},\n" +
+                "        {value: 10425, name: '下载量'},\n" +
+                "        {value: 5215, name: '购买量'}\n" +
+                "      ],\n" +
+                "      emphasis: {\n" +
+                "        itemStyle: {\n" +
+                "          shadowBlur: 10,\n" +
+                "          shadowOffsetX: 0,\n" +
+                "          shadowColor: 'rgba(0, 0, 0, 0.5)'\n" +
+                "        }\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
+        // 正则表达式匹配JSON对象
+        Pattern pattern = Pattern.compile("\\{.*\\}", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(jsInput);
+        if (matcher.find()) {
+            String jsonStr = matcher.group(0);
+            try {
+                // 使用Gson解析器验证并美化JSON字符串
+                Gson gson = new Gson();
+                JsonObject jsonObject = JsonParser.parseString(/*"{" + */ jsonStr /*+ "}"*/).getAsJsonObject();
+                String prettyJson = gson.toJson(jsonObject);
+                System.out.println("Extracted and formatted JSON:");
+                System.out.println(prettyJson);
+            } catch (Exception e) {
+                System.out.println("Failed to parse JSON: " + e.getMessage());
+            }
+        } else {
+            System.out.println("No JSON found");
+        }
+    }
 }

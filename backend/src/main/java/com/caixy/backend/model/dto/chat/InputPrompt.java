@@ -69,16 +69,6 @@ public class InputPrompt
                 "然后我会给出一个可视化要求结果，你需要帮我分析这个数据，并根据我想要的可视化图表的内容返回echarts" +
                 "来实现图表可视化" +
                 "。"));
-        chatMessages.add(new ChatRequestSystemMessage("输出格式: " +
-                "请根据这两部分内容，按照以下指定格式生成内容（此外不要输出任何多余的开头、结尾、注释、代码块格式）。【【【【【是你需要输出的内容，输出时需要带上【【【【【"));
-        chatMessages.add(new ChatRequestSystemMessage("{开头引入介绍，不要做太多解释}"));
-        chatMessages.add(new ChatRequestSystemMessage("【【【【【\n"));
-        chatMessages.add(new ChatRequestSystemMessage("{这里不需要添加任何文字和描述，这里只可以直接生成前端 Echarts V5 的 option 配置对象js代码，合理地将数据进行可视化，不要生成任何多余的内容，比如注释}"));
-        chatMessages.add(new ChatRequestSystemMessage("【【【【【\n"));
-        chatMessages.add(new ChatRequestSystemMessage("{明确的数据分析结论、越详细越好，不要生成多余的注释，也不是解释上面的echarts代码}"));
-        chatMessages.add(new ChatRequestSystemMessage("【【【【【\n"));
-
-        chatMessages.add(new ChatRequestSystemMessage("在编写代码时，请注意不需要添加注释。"));
         chatMessages.add(new ChatRequestSystemMessage("下面是用户的数据和要求"));
 
 
@@ -86,7 +76,19 @@ public class InputPrompt
         chatMessages.add(new ChatRequestUserMessage("可视化需求：为了更好地呈现这些分析结果，我希望通过" + chartType + "来清晰展现数据之间的关系。\n"));
         chatMessages.add(new ChatRequestUserMessage("特别要求：完成数据分析后，可视化请提供相应的【" + chartType + "】的Echarts的JavaScript-option选项代码，以便我能够直接使用Echarts来实现这些图表的可视化。\n"));
         chatMessages.add(new ChatRequestUserMessage("用户的数据如下：\n" + data + "\n\n"));
-        chatMessages.add(new ChatRequestUserMessage("请按照以上要求，帮我完成数据分析，并生成可视化图表。"));
+        chatMessages.add(new ChatRequestUserMessage("请按照以上要求，帮我完成数据分析，并生成可视化图表，最终得出分析结论。我需要两个内容：可视化图表的echarts" +
+                "代码、分析情况，请按照上面要求的格式输出。"));
+        chatMessages.add(new ChatRequestSystemMessage("输出格式: " +
+                "请根据这两部分内容，按照以下指定格式生成内容（此外不要输出任何多余的开头、结尾、注释、代码块格式）。【【【【【是你需要输出的内容，输出时需要带上【【【【【"));
+        chatMessages.add(new ChatRequestSystemMessage("{开头引入介绍，不要做太多解释}"));
+        chatMessages.add(new ChatRequestSystemMessage("【【【【【\n"));
+        chatMessages.add(new ChatRequestSystemMessage("{这里不需要添加任何文字和描述，这里只可以直接生成前端 Echarts V5 的 option 配置对象js代码，合理地将数据进行可视化，不要生成任何多余的内容，不需要的内容例如：注释，代码块格式，option变量定义；我们只需要直接输出option对象。}"));
+        chatMessages.add(new ChatRequestSystemMessage("【【【【【\n"));
+        chatMessages.add(new ChatRequestSystemMessage("{明确的数据分析结论、越详细越好，不要生成多余的注释，也不是解释上面的echarts代码，这是必须的}"));
+        chatMessages.add(new ChatRequestSystemMessage("【【【【【\n"));
+
+        chatMessages.add(new ChatRequestSystemMessage("在编写代码时，请注意不需要添加注释。"));
+
         return chatMessages;
     }
 }

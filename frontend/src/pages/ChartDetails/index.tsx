@@ -9,6 +9,8 @@ import Markdown from "react-markdown";
 import html2canvas from "html2canvas";
 import {jsPDF} from 'jspdf';
 import dayjs from "dayjs";
+import JsonUtils from "@/utils/JsonUtils";
+import TaskStatusEnum from "@/enums/TaskStatusEnum";
 
 const Index = () =>
 {
@@ -32,7 +34,7 @@ const Index = () =>
             const { data, code } = await getChartResultUsingGet({ chartId: id });
             if (code === 0)
             {
-                const chartOption = JSON.parse(data.genChart ?? '{}');
+                const chartOption = JsonUtils.safeJsonParse(data.genChart);
                 chartOption.title = undefined;
                 data.genChart = JSON.stringify(chartOption);
                 console.log(data);
@@ -82,7 +84,7 @@ const Index = () =>
     return <>
         <Helmet>
             <title>
-                {chartData.name}-分析详情
+                {`${chartData.name}-分析详情`}
             </title>
         </Helmet>
         <PageContainer
@@ -108,7 +110,7 @@ const Index = () =>
                         "YYYY-MM-DD HH:mm:ss")}</Descriptions.Item>
                     <Descriptions.Item label={"更新时间"}>{dayjs(chartData.updateTime).format(
                         "YYYY-MM-DD HH:mm:ss")}</Descriptions.Item>
-                    <Descriptions.Item label={"生成状态"}>{chartData.status}</Descriptions.Item>
+                    <Descriptions.Item label={"生成状态"}>{TaskStatusEnum.getTextByValue(chartData.status as string)}</Descriptions.Item>
                 </Descriptions>
             </Card>
 
@@ -120,7 +122,7 @@ const Index = () =>
                     </Paragraph>
                 </Typography>
                 <Divider/>
-                <Title>可视化分析</Title>
+                <Title>数据可视化</Title>
                 {chartData.genChart ? (
                     <ReactECharts option={JSON.parse(chartData.genChart)}/>
                 ) : (

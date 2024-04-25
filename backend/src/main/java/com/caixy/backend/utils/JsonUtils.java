@@ -1,8 +1,6 @@
 package com.caixy.backend.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.LongSerializationPolicy;
+import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
@@ -71,6 +69,17 @@ public class JsonUtils
     public static <T> T jsonToObject(String json, Type typeOfT)
     {
         return gson.fromJson(json, typeOfT);
+    }
+
+    public static String fixedJson(String incorrectJson)
+    {
+        JsonObject jsonObject = null;
+        try {
+            jsonObject = gson.fromJson(incorrectJson, JsonObject.class);
+        } catch (JsonSyntaxException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        return gson.toJson(jsonObject);
     }
 
 }

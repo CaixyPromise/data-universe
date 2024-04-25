@@ -87,7 +87,7 @@ const Login: React.FC = () =>
         <div className={containerClassName}>
             <Helmet>
                 <title>
-                    {'登录'}- {Settings.title}
+                    {`登录-${Settings.title}`}
                 </title>
             </Helmet>
             <div
@@ -102,7 +102,7 @@ const Login: React.FC = () =>
                         maxWidth: '75vw',
                     }}
                     logo={<img alt="logo" src="/logo.svg"/>}
-                    title="数据分析平台"
+                    title="数据万象"
                     subTitle={
                         <a href="https://www.github.com/CaixyPromise" target="_blank">
                             CaixyPromise

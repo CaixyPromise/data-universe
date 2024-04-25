@@ -82,6 +82,7 @@ declare namespace API {
     id?: number;
     isDelete?: number;
     name?: string;
+    responseContent?: string;
     status?: string;
     updateTime?: string;
     userId?: number;
@@ -131,41 +132,45 @@ declare namespace API {
     id?: number;
   };
 
-  type genChartByAiAsyncMqUsingPostParams = {
+  type genChartByAiAsyncMqUsingPOSTParams = {
     chartType?: string;
     goal?: string;
     name?: string;
   };
 
-  type genChartByAiAsyncUsingPostParams = {
+  type genChartByAiAsyncUsingPOSTParams = {
     chartType?: string;
     goal?: string;
     name?: string;
   };
 
-  type genChartByAiUsingPostParams = {
+  type genChartByAiUsingPOSTParams = {
     chartType?: string;
     goal?: string;
     name?: string;
   };
 
-  type getChartByIdUsingGetParams = {
+  type getChartByIdUsingGETParams = {
     /** id */
     id?: number;
   };
 
-  type getChartResultUsingGetParams = {
+  type getChartResultUsingGETParams = {
     /** chartId */
     chartId: number;
   };
 
-  type getUserByIdUsingGetParams = {
+  type getUserByIdUsingGETParams = {
     /** id */
     id?: number;
   };
 
-  type getUserVOByIdUsingGetParams = {
+  type getUserVOByIdUsingGETParams = {
     /** id */
+    id?: number;
+  };
+
+  type IdRequest = {
     id?: number;
   };
 
@@ -223,7 +228,7 @@ declare namespace API {
     total?: number;
   };
 
-  type uploadFileUsingPostParams = {
+  type uploadFileUsingPOSTParams = {
     biz?: string;
   };
 

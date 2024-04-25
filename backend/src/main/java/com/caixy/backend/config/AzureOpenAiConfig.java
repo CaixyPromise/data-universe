@@ -3,17 +3,14 @@ package com.caixy.backend.config;
 import com.azure.ai.openai.OpenAIClient;
 import com.azure.ai.openai.OpenAIClientBuilder;
 import com.azure.core.credential.KeyCredential;
-import com.azure.core.http.HttpClient;
-import com.azure.core.http.HttpRequest;
-import com.azure.core.http.HttpResponse;
 import com.azure.core.http.netty.NettyAsyncHttpClientBuilder;
 import com.azure.core.http.policy.RetryPolicy;
 import com.azure.core.http.policy.RetryStrategy;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
@@ -42,24 +39,31 @@ public class AzureOpenAiConfig
      * @version 1.0
      * @since 2024/4/24 下午2:53
      */
+    @Bean
     public OpenAIClient getOpenAIClient()
     {
-        RetryPolicy retryPolicy = new RetryPolicy(new RetryStrategy() {
+        RetryPolicy retryPolicy = new RetryPolicy(new RetryStrategy()
+        {
             @Override
-            public int getMaxRetries() {
+            public int getMaxRetries()
+            {
                 return 3; // 最大重试次数为3
             }
 
             @Override
-            public Duration calculateRetryDelay(int i)
+            public Duration calculateRetryDelay(int retryAttempt)
             {
-                return Duration.ofSeconds(3);
+                return Duration.ofSeconds(3); // 重试延迟时间
             }
         });
+
         return new OpenAIClientBuilder()
                 .endpoint(endPoint)
                 .credential(new KeyCredential(apiKey))
-                .httpClient(new NettyAsyncHttpClientBuilder().connectTimeout(Duration.ofSeconds(60)).build())
+                .httpClient(new NettyAsyncHttpClientBuilder()
+                        .connectTimeout(Duration.ofSeconds(180)) // 连接超时时间
+                        .responseTimeout(Duration.ofSeconds(180)) // 响应超时时间
+                        .build())
                 .retryPolicy(retryPolicy)
                 .buildClient();
     }

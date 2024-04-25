@@ -9,8 +9,10 @@ import com.caixy.backend.model.dto.chat.InputPrompt;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -22,19 +24,19 @@ import java.util.List;
  **/
 @Slf4j
 @Component
-@NoArgsConstructor(force = true)
-@AllArgsConstructor
 public class AzureOpenAIClient
 {
     private final AzureOpenAiConfig azureOpenAiConfig;
 
     private final OpenAIClient client;
 
+    @Autowired
     public AzureOpenAIClient(AzureOpenAiConfig azureOpenAiConfig)
     {
         this.azureOpenAiConfig = azureOpenAiConfig;
         this.client = azureOpenAiConfig.getOpenAIClient();
     }
+
 
     /**
      * 聊天

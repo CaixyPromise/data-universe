@@ -18,6 +18,7 @@ const Settings: ProLayoutProps & {
     "token": {},
     "splitMenus": false,
     "menuRender": false,
+    title: "数据万象"
 
 }
 export default Settings;

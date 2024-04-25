@@ -50,7 +50,7 @@ export async function editChartUsingPost(
 /** genChartByAi POST /api/chart/gen */
 export async function genChartByAiUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.genChartByAiUsingPostParams,
+  params: API.genChartByAiUsingPOSTParams,
   body: {},
   file?: File,
   options?: { [key: string]: any },
@@ -91,7 +91,7 @@ export async function genChartByAiUsingPost(
 /** genChartByAiAsync POST /api/chart/gen/async */
 export async function genChartByAiAsyncUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.genChartByAiAsyncUsingPostParams,
+  params: API.genChartByAiAsyncUsingPOSTParams,
   body: {},
   file?: File,
   options?: { [key: string]: any },
@@ -132,7 +132,7 @@ export async function genChartByAiAsyncUsingPost(
 /** genChartByAiAsyncMq POST /api/chart/gen/async/mq */
 export async function genChartByAiAsyncMqUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.genChartByAiAsyncMqUsingPostParams,
+  params: API.genChartByAiAsyncMqUsingPOSTParams,
   body: {},
   file?: File,
   options?: { [key: string]: any },
@@ -173,7 +173,7 @@ export async function genChartByAiAsyncMqUsingPost(
 /** getChartById GET /api/chart/get */
 export async function getChartByIdUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getChartByIdUsingGetParams,
+  params: API.getChartByIdUsingGETParams,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseChart_>('/api/chart/get', {
@@ -188,7 +188,7 @@ export async function getChartByIdUsingGet(
 /** getChartResult GET /api/chart/get/result */
 export async function getChartResultUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getChartResultUsingGetParams,
+  params: API.getChartResultUsingGETParams,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseChart_>('/api/chart/get/result', {
@@ -221,6 +221,18 @@ export async function listMyChartByPageUsingPost(
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponsePageChart_>('/api/chart/my/list/page', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** restartTask POST /api/chart/task/restart */
+export async function restartTaskUsingPost(body: API.IdRequest, options?: { [key: string]: any }) {
+  return request<API.BaseResponseBoolean_>('/api/chart/task/restart', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -73,7 +73,7 @@ export default defineConfig({
    * @name layout 插件
    * @doc https://umijs.org/docs/max/layout-menu
    */
-  title: '数据分析平台',
+  title: '数据万象',
   layout: {
     locale: true,
     ...defaultSettings,
